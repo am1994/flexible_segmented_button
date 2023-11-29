@@ -23,30 +23,37 @@ class Example extends StatefulWidget {
 }
 
 class _ExampleState extends State<Example> {
-  int _activeIndex = 3;
+  int _selectedIndex = 5;
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       body: Center(
         child: FlexibleSegmentedButton(
-          activeIndex: _activeIndex,
+          selectedSide: const BorderSide(width: 3, color: Color(0XFF6B6C75)),
+          currentIndex: 5,
+          selectedIndex: _selectedIndex,
+          completedTextColor: Colors.white,
+          currentTextColor: const Color(0XFF6B6C75),
+          uncompletedTextColor: const Color(0XFF6B6C75),
+          uncompletedColor: const Color(0xFFF4F4F4),
+          completedColor: const Color(0XFFB20200),
           onSegmentTap: (index) {
             setState(() {
-              _activeIndex = index;
+              _selectedIndex = index;
             });
           },
           segments: const <FlexibleSegment<int>>[
             FlexibleSegment(
-              top: Text('Week 1'),
-              center: Text('1'),
-              bottom: Text('Text'),
-            ),
+                top: Text('Week 1'),
+                center: Text('1'),
+                bottom: Text('Text'),
+                isCompleted: true),
             FlexibleSegment(
-              top: Text('Week 1'),
-              center: Text('2'),
-              bottom: Text('Text'),
-            ),
+                top: Text('Week 1'),
+                center: Text('2'),
+                bottom: Text('Text'),
+                isCompleted: true),
             FlexibleSegment(
               top: Text('Week 1'),
               center: Text('3'),
@@ -72,7 +79,6 @@ class _ExampleState extends State<Example> {
               center: Text('7'),
               bottom: Text('Text'),
             ),
-
           ],
         ),
       ),

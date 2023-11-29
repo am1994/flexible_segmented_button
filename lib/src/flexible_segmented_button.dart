@@ -9,169 +9,213 @@ class FlexibleSegment<T> {
     this.center,
     this.bottom,
     this.tooltip,
+    this.isCompleted = false,
   }) : assert(top != null || center != null || bottom != null);
 
   final Widget? top;
   final Widget? center;
   final Widget? bottom;
   final String? tooltip;
+  final bool isCompleted; //Change the name to Be Used in General
 }
 
-class FlexibleSegmentedButton<T> extends StatelessWidget {
-  const FlexibleSegmentedButton({
-    super.key,
-    required this.segments,
-    required this.activeIndex,
-    this.visibleItems = 4,
-    this.constraints,
-    this.padding = const EdgeInsets.all(8.0),
-    this.borderRadius,
-    this.onSegmentTap,
-  });
+class FlexibleSegmentedButton<T> extends StatefulWidget {
+  const FlexibleSegmentedButton(
+      {super.key,
+      required this.segments,
+      required this.selectedIndex,
+      this.currentIndex = -1,
+      this.visibleItems = 4,
+      this.constraints,
+      this.padding = const EdgeInsets.all(8.0),
+      this.borderRadius,
+      this.onSegmentTap,
+      this.currentColor = Colors.white,
+      this.completedColor = Colors.red,
+      this.uncompletedColor = Colors.grey,
+      this.itemSize = _kItemSize,
+      this.selectedSide = BorderSide.none,
+      this.textStyle,
+      this.currentTextColor = Colors.white10,
+      this.completedTextColor = Colors.white,
+      this.uncompletedTextColor = Colors.white10});
 
   final List<FlexibleSegment<T>> segments;
-  final int activeIndex;
+  final int selectedIndex;
   final int visibleItems;
   final BoxConstraints? constraints;
   final EdgeInsets padding;
   final BorderRadius? borderRadius;
   final ValueChanged<int>? onSegmentTap;
+  final Color? currentTextColor;
+  final Color? completedTextColor;
+  final Color? uncompletedTextColor;
+  final Color currentColor;
+  final Color completedColor;
+  final Color uncompletedColor;
+  final int currentIndex;
+  final double itemSize;
+  final BorderSide selectedSide;
+  final TextStyle? textStyle;
+
+  @override
+  State<FlexibleSegmentedButton<T>> createState() =>
+      _FlexibleSegmentedButtonState<T>();
+}
+
+class _FlexibleSegmentedButtonState<T>
+    extends State<FlexibleSegmentedButton<T>> {
+  final ScrollController _controller = ScrollController();
+  bool _isScrolled = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _animateToIndex(int index) {
+    _controller.animateTo(
+      index * widget.itemSize,
+      duration: const Duration(seconds: 2),
+      curve: Curves.fastOutSlowIn,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant FlexibleSegmentedButton<T> oldWidget) {
+    if (_controller.hasClients && widget.currentIndex != -1 && !_isScrolled) {
+      _animateToIndex(widget.currentIndex);
+      _isScrolled = true;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final BoxConstraints constraints = this.constraints ??
-      BoxConstraints(
-        maxHeight: _kItemSize + padding.vertical + 8.0,
-        maxWidth: (_kItemSize + padding.horizontal) * visibleItems,
-      );
+    final BoxConstraints constraints = widget.constraints ??
+        BoxConstraints(
+          maxHeight: widget.itemSize + widget.padding.vertical + 8.0,
+          maxWidth: (widget.itemSize + widget.padding.horizontal) *
+              widget.visibleItems,
+        );
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
 
     return ConstrainedBox(
       constraints: constraints,
-      child: ListView.builder(
-        physics: const ClampingScrollPhysics(),
-        // physics: SnappingScrollPhysics(itemExtent: _kItemSize + padding.horizontal, parent: const ClampingScrollPhysics()),
-        scrollDirection: Axis.horizontal,
-        itemCount: segments.length,
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        itemBuilder: (BuildContext context, int index) {
-          final Color backgroundColor = index < activeIndex
-              ? colorScheme.primary
-              : colorScheme.primaryContainer;
-          final Color textColor = index < activeIndex
-              ? colorScheme.onPrimary
-              : colorScheme.onPrimaryContainer;
-          final TextStyle topTextStyle = TextStyle(color: textColor);
-          final TextStyle centerTextStyle = theme.textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold, color: textColor);
-          final TextStyle bottomTextStyle = TextStyle(color: textColor);
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(widget.itemSize / 4),
+        child: ListView.builder(
+          controller: _controller,
+          physics: const ClampingScrollPhysics(),
+          // physics: SnappingScrollPhysics(itemExtent: _kItemSize + padding.horizontal, parent: const ClampingScrollPhysics()),
+          scrollDirection: Axis.horizontal,
+          itemCount: widget.segments.length,
+          padding: EdgeInsets.zero, //const EdgeInsets.symmetric(vertical: 8.0),
+          itemBuilder: (BuildContext context, int index) {
+            //left side of square behind selected item.
+            Color backgroundActiveColor = colorScheme.onPrimary;
 
-          BorderRadius borderRadius = BorderRadius.zero;
-          if (index == 0) {
-            borderRadius = const BorderRadius.horizontal(left: Radius.circular(_kItemSize / 4));
-          } else if (index == segments.length - 1) {
-            borderRadius = const BorderRadius.horizontal(right: Radius.circular(_kItemSize / 4));
-          }
+            if (index > 0 && index == widget.selectedIndex) {
+              int previousIndex = index - 1;
+              if (widget.segments[previousIndex].isCompleted) {
+                backgroundActiveColor = widget.completedColor;
+              } else if (previousIndex == widget.currentIndex) {
+                backgroundActiveColor = widget.currentColor;
+              } else {
+                backgroundActiveColor = widget.uncompletedColor;
+              }
+            }
 
-          if (activeIndex == index) {
-            return CustomPaint(
-              painter: _ActivSegmentBackground(
-                activeColor: colorScheme.primary,
-                inactiveColor: backgroundColor,
-                childSize: const Size.square(_kItemSize),
-              ),
-              child: Material(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_kItemSize / 4)),
-                elevation: 2.0,
-                child: _SegmentWidget(
-                  top: segments[index].top,
-                  center: segments[index].center,
-                  bottom: segments[index].bottom,
-                  topTextStyle: topTextStyle,
-                  centerTextStyle: centerTextStyle,
-                  bottomTextStyle: bottomTextStyle,
-                  padding: padding,
+            //right side of box behind selected item.
+            Color backgroundInactiveColor = colorScheme.onPrimary;
+
+            if (index < widget.segments.length - 1 &&
+                index == widget.selectedIndex) {
+              int nextIndex = index + 1;
+              if (widget.segments[nextIndex].isCompleted) {
+                backgroundInactiveColor = widget.completedColor;
+              } else if (nextIndex == widget.currentIndex) {
+                backgroundInactiveColor = widget.currentColor;
+              } else {
+                backgroundInactiveColor = widget.uncompletedColor;
+              }
+            }
+
+            //item color
+            Color backgroundSelectedItemColor = colorScheme.onPrimary;
+            // segments[index].isCompleted ?
+            // completedColor : index == currentIndex ?
+            // currentColor : uncompletedColor;
+
+            TextStyle style = widget.textStyle ?? const TextStyle();
+
+            // index < activeIndex
+            //     ? colorScheme.onPrimary
+            //     : colorScheme.onPrimaryContainer;
+
+            if (widget.segments[index].isCompleted) {
+              backgroundSelectedItemColor = widget.completedColor;
+              style = style.copyWith(color: widget.completedTextColor);
+            } else if (index == widget.currentIndex) {
+              backgroundSelectedItemColor = widget.currentColor;
+              style = style.copyWith(color: widget.currentTextColor);
+            } else {
+              backgroundSelectedItemColor = widget.uncompletedColor;
+              style = style.copyWith(color: widget.uncompletedTextColor);
+            }
+
+            final TextStyle topTextStyle = style; //TextStyle(color: textColor);
+            final TextStyle centerTextStyle = style.copyWith(
+                fontWeight: FontWeight
+                    .w700); //theme.textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold, color: textColor);
+            final TextStyle bottomTextStyle =
+                style; //TextStyle(color: textColor);
+
+            if (widget.selectedIndex == index) {
+              return CustomPaint(
+                painter: _ActiveSegmentBackground(
+                  activeColor: backgroundActiveColor, // colorScheme.primary,
+                  inactiveColor: backgroundInactiveColor,
+                  childSize: Size.square(widget.itemSize),
                 ),
-              ),
-            );
-          }
+                child: Material(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(widget.itemSize / 4),
+                      side: widget.selectedSide //BorderSide(width: 2)
+                      ),
+                  elevation: 2.0,
+                  color: backgroundSelectedItemColor,
+                  child: _SegmentWidget(
+                    top: widget.segments[index].top,
+                    center: widget.segments[index].center,
+                    bottom: widget.segments[index].bottom,
+                    topTextStyle: topTextStyle,
+                    centerTextStyle: centerTextStyle,
+                    bottomTextStyle: bottomTextStyle,
+                    padding: widget.padding,
+                  ),
+                ),
+              );
+            }
 
-          return _SegmentWidget(
-            top: segments[index].top,
-            center: segments[index].center,
-            bottom: segments[index].bottom,
-            topTextStyle: topTextStyle,
-            centerTextStyle: centerTextStyle,
-            bottomTextStyle: bottomTextStyle,
-            padding: padding,
-            borderRadius: borderRadius,
-            backgroundColor: backgroundColor,
-            onTap: () {
-              onSegmentTap?.call(index);
-            },
-          );
-        },
+            return _SegmentWidget(
+              top: widget.segments[index].top,
+              center: widget.segments[index].center,
+              bottom: widget.segments[index].bottom,
+              topTextStyle: topTextStyle,
+              centerTextStyle: centerTextStyle,
+              bottomTextStyle: bottomTextStyle,
+              padding: widget.padding,
+              itemSize: widget.itemSize,
+              backgroundColor: backgroundSelectedItemColor,
+              onTap: () {
+                widget.onSegmentTap?.call(index);
+              },
+            );
+          },
+        ),
       ),
-      // child: CustomPaint(
-      // painter: _ActivSegmentBackground(
-      //   backgroundColor: colorScheme.primaryContainer,
-      //   backgroundRadius: const Radius.circular(_SegmentSize / 4),
-      //   childSize: const Size.square(_SegmentSize),
-      // ),
-      // child: ListView.builder(
-      //   physics: const SnappingScrollPhysics(
-      //       itemExtent: _SegmentItemExtent,
-      //       parent: ClampingScrollPhysics()),
-      //   scrollDirection: Axis.horizontal,
-      //   itemCount: segments.length,
-      //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-      //   itemBuilder: (BuildContext context, int index) {
-      //     final Color textColor = index < activeIndex
-      //         ? colorScheme.onPrimary
-      //         : colorScheme.onPrimaryContainer;
-      //     if (index == activeIndex) {
-      //       return CustomPaint(
-      //         painter: _SegmentBackgroundPainter(
-      //           activeIndex: activeIndex,
-      //           index: index,
-      //           childSize: const Size.square(_SegmentSize),
-      //           backgroundRadius: const Radius.circular(_SegmentSize / 4),
-      //           completedColor: colorScheme.onPrimaryContainer,
-      //         ),
-      //         child: Card(
-      //           shape: RoundedRectangleBorder(
-      //               borderRadius: BorderRadius.circular(_SegmentSize / 4)),
-      //           margin: EdgeInsets.zero,
-      //           elevation: 4.0,
-      //           child: _SegmentWidget(
-      //             size: const Size.square(_SegmentSize),
-      //             top: segments[index].top,
-      //             center: segments[index].center,
-      //             bottom: segments[index].bottom,
-      //             textColor: textColor,
-      //           ),
-      //         ),
-      //       );
-      //     }
-      //     return CustomPaint(
-      //       painter: _SegmentBackgroundPainter(
-      //         activeIndex: activeIndex,
-      //         index: index,
-      //         childSize: const Size.square(_SegmentSize),
-      //         backgroundRadius: const Radius.circular(_SegmentSize / 4),
-      //         completedColor: colorScheme.onPrimaryContainer,
-      //       ),
-      //       child: _SegmentWidget(
-      //         size: const Size.square(_SegmentSize),
-      //         top: segments[index].top,
-      //         center: segments[index].center,
-      //         bottom: segments[index].bottom,
-      //         textColor: textColor,
-      //       ),
-      //     );
-      //   },
-      // ),
-      // ),
     );
     // return ScrollConfiguration(
     //   behavior: const ScrollBehavior().copyWith(dragDevices: {
@@ -247,18 +291,17 @@ class FlexibleSegmentedButton<T> extends StatelessWidget {
 }
 
 class _SegmentWidget extends StatelessWidget {
-  const _SegmentWidget({
-    required this.top,
-    required this.center,
-    required this.bottom,
-    this.topTextStyle,
-    this.centerTextStyle,
-    this.bottomTextStyle,
-    required this.padding,
-    this.borderRadius,
-    this.backgroundColor,
-    this.onTap,
-  });
+  const _SegmentWidget(
+      {required this.top,
+      required this.center,
+      required this.bottom,
+      this.topTextStyle,
+      this.centerTextStyle,
+      this.bottomTextStyle,
+      required this.padding,
+      this.backgroundColor,
+      this.onTap,
+      this.itemSize = _kItemSize});
 
   final Widget? top;
   final Widget? center;
@@ -267,9 +310,9 @@ class _SegmentWidget extends StatelessWidget {
   final TextStyle? centerTextStyle;
   final TextStyle? bottomTextStyle;
   final EdgeInsets padding;
-  final BorderRadius? borderRadius;
   final Color? backgroundColor;
   final Function()? onTap;
+  final double itemSize;
 
   @override
   Widget build(BuildContext context) {
@@ -279,15 +322,14 @@ class _SegmentWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: ConstrainedBox(
-        constraints:  BoxConstraints(
-          minWidth: _kItemSize + padding.horizontal,
-          maxWidth: _kItemSize + padding.horizontal,
-          minHeight: _kItemSize + padding.vertical,
-          maxHeight: _kItemSize + padding.vertical,
+        constraints: BoxConstraints(
+          minWidth: itemSize + padding.horizontal,
+          maxWidth: itemSize + padding.horizontal,
+          minHeight: itemSize + padding.vertical,
+          maxHeight: itemSize + padding.vertical,
         ),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: borderRadius,
             color: backgroundColor,
           ),
           child: Padding(
@@ -400,8 +442,8 @@ class SnappingScrollPhysics extends ScrollPhysics {
 //   }
 // }
 
-class _ActivSegmentBackground extends CustomPainter {
-  _ActivSegmentBackground({
+class _ActiveSegmentBackground extends CustomPainter {
+  _ActiveSegmentBackground({
     required this.activeColor,
     required this.inactiveColor,
     required this.childSize,
@@ -413,10 +455,12 @@ class _ActivSegmentBackground extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint backgroundPaint = Paint()..color = activeColor;
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width / 2, size.height), backgroundPaint);
+    canvas.drawRect(
+        Rect.fromLTWH(0, 0, size.width / 2, size.height), backgroundPaint);
     backgroundPaint = Paint()..color = inactiveColor;
-    canvas.drawRect(Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height), backgroundPaint);
-
+    canvas.drawRect(
+        Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height),
+        backgroundPaint);
   }
 
   @override
