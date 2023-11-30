@@ -67,16 +67,20 @@ class FlexibleSegmentedButton<T> extends StatefulWidget {
 class _FlexibleSegmentedButtonState<T>
     extends State<FlexibleSegmentedButton<T>> {
   final ScrollController _controller = ScrollController();
-  bool _isScrolled = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_controller.hasClients) {
+        _animateToIndex(widget.currentIndex);
+      }
+    });
   }
 
   void _animateToIndex(int index) {
     _controller.animateTo(
-      index + _kItemSize+ MediaQuery.of(context).size.width / 2,  //* (widget.itemSize + widget.padding.horizontal),
+      index * (_kItemSize + widget.padding.horizontal),
       duration: const Duration(seconds: 2),
       curve: Curves.fastOutSlowIn,
     );
@@ -84,11 +88,6 @@ class _FlexibleSegmentedButtonState<T>
 
   @override
   Widget build(BuildContext context) {
-    if (_controller.hasClients && widget.currentIndex != -1 && !_isScrolled) {
-      _animateToIndex(widget.currentIndex);
-      _isScrolled = true;
-      setState(() {});
-    }
     final BoxConstraints constraints = widget.constraints ??
         BoxConstraints(
           maxHeight: widget.itemSize + widget.padding.vertical, //+ 8.0,
@@ -179,7 +178,8 @@ class _FlexibleSegmentedButtonState<T>
                 ),
                 child: Material(
                   shape: RoundedRectangleBorder(
-                      borderRadius:  widget.borderRadius ?? BorderRadius.circular(widget.itemSize / 4),
+                      borderRadius: widget.borderRadius ??
+                          BorderRadius.circular(widget.itemSize / 4),
                       side: widget.selectedSide //BorderSide(width: 2)
                       ),
                   elevation: 2.0,
@@ -286,6 +286,13 @@ class _FlexibleSegmentedButtonState<T>
     //   ),
     // );
   }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
 }
 
 class _SegmentWidget extends StatelessWidget {
