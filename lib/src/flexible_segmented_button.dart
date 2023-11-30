@@ -76,7 +76,7 @@ class _FlexibleSegmentedButtonState<T>
 
   void _animateToIndex(int index) {
     _controller.animateTo(
-      index * widget.itemSize,
+      index + _kItemSize+ MediaQuery.of(context).size.width / 2,  //* (widget.itemSize + widget.padding.horizontal),
       duration: const Duration(seconds: 2),
       curve: Curves.fastOutSlowIn,
     );
