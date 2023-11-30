@@ -106,7 +106,7 @@ class _FlexibleSegmentedButtonState<T>
       constraints: constraints,
       child: ClipRRect(
         borderRadius:
-            widget.borderRadius!, //BorderRadius.circular(widget.itemSize / 4),
+            widget.borderRadius ?? BorderRadius.circular(widget.itemSize / 4),
         child: ListView.builder(
           controller: _controller,
           physics: const ClampingScrollPhysics(),
@@ -183,8 +183,7 @@ class _FlexibleSegmentedButtonState<T>
                 ),
                 child: Material(
                   shape: RoundedRectangleBorder(
-                      borderRadius: widget
-                          .borderRadius!, //BorderRadius.circular(widget.itemSize / 4), //
+                      borderRadius:  widget.borderRadius ?? BorderRadius.circular(widget.itemSize / 4),
                       side: widget.selectedSide //BorderSide(width: 2)
                       ),
                   elevation: 2.0,
