@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const double _kItemSize = 80.0;
+const double _kItemSize = 60.0;
 // const PageScrollPhysics _kPagePhysics = PageScrollPhysics();
 
 class FlexibleSegment<T> {
@@ -20,25 +20,26 @@ class FlexibleSegment<T> {
 }
 
 class FlexibleSegmentedButton<T> extends StatefulWidget {
-  const FlexibleSegmentedButton(
-      {super.key,
-      required this.segments,
-      required this.selectedIndex,
-      this.currentIndex = -1,
-      this.visibleItems = 4,
-      this.constraints,
-      this.padding = const EdgeInsets.all(8.0),
-      this.borderRadius,
-      this.onSegmentTap,
-      this.currentColor = Colors.white,
-      this.completedColor = Colors.red,
-      this.uncompletedColor = Colors.grey,
-      this.itemSize = _kItemSize,
-      this.selectedSide = BorderSide.none,
-      this.textStyle,
-      this.currentTextColor = Colors.white10,
-      this.completedTextColor = Colors.white,
-      this.uncompletedTextColor = Colors.white10});
+  const FlexibleSegmentedButton({
+    super.key,
+    required this.segments,
+    required this.selectedIndex,
+    this.currentIndex = -1,
+    this.visibleItems = 4,
+    this.constraints,
+    this.padding = const EdgeInsets.all(8.0),
+    this.borderRadius,
+    this.onSegmentTap,
+    this.currentColor = Colors.white,
+    this.completedColor = Colors.red,
+    this.uncompletedColor = Colors.grey,
+    this.itemSize = _kItemSize,
+    this.selectedSide = BorderSide.none,
+    this.textStyle,
+    this.currentTextColor = Colors.white10,
+    this.completedTextColor = Colors.white,
+    this.uncompletedTextColor = Colors.white10,
+  });
 
   final List<FlexibleSegment<T>> segments;
   final int selectedIndex;
@@ -54,9 +55,9 @@ class FlexibleSegmentedButton<T> extends StatefulWidget {
   final Color completedColor;
   final Color uncompletedColor;
   final int currentIndex;
-  final double itemSize;
   final BorderSide selectedSide;
   final TextStyle? textStyle;
+  final double itemSize;
 
   @override
   State<FlexibleSegmentedButton<T>> createState() =>
@@ -94,9 +95,9 @@ class _FlexibleSegmentedButtonState<T>
   Widget build(BuildContext context) {
     final BoxConstraints constraints = widget.constraints ??
         BoxConstraints(
-          maxHeight: widget.itemSize + widget.padding.vertical + 8.0,
-          maxWidth: (widget.itemSize + widget.padding.horizontal) *
-              widget.visibleItems,
+          maxHeight: widget.itemSize + widget.padding.vertical, //+ 8.0,
+          //  widget.itemSize + widget.padding.vertical + 8.0,
+          //maxWidth: (widget.width + widget.padding.horizontal) * widget.visibleItems,
         );
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
@@ -104,7 +105,8 @@ class _FlexibleSegmentedButtonState<T>
     return ConstrainedBox(
       constraints: constraints,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(widget.itemSize / 4),
+        borderRadius:
+            widget.borderRadius!, //BorderRadius.circular(widget.itemSize / 4),
         child: ListView.builder(
           controller: _controller,
           physics: const ClampingScrollPhysics(),
@@ -181,7 +183,8 @@ class _FlexibleSegmentedButtonState<T>
                 ),
                 child: Material(
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(widget.itemSize / 4),
+                      borderRadius: widget
+                          .borderRadius!, //BorderRadius.circular(widget.itemSize / 4), //
                       side: widget.selectedSide //BorderSide(width: 2)
                       ),
                   elevation: 2.0,
@@ -291,17 +294,18 @@ class _FlexibleSegmentedButtonState<T>
 }
 
 class _SegmentWidget extends StatelessWidget {
-  const _SegmentWidget(
-      {required this.top,
-      required this.center,
-      required this.bottom,
-      this.topTextStyle,
-      this.centerTextStyle,
-      this.bottomTextStyle,
-      required this.padding,
-      this.backgroundColor,
-      this.onTap,
-      this.itemSize = _kItemSize});
+  const _SegmentWidget({
+    required this.top,
+    required this.center,
+    required this.bottom,
+    this.topTextStyle,
+    this.centerTextStyle,
+    this.bottomTextStyle,
+    required this.padding,
+    this.backgroundColor,
+    this.onTap,
+    this.itemSize = _kItemSize,
+  });
 
   final Widget? top;
   final Widget? center;

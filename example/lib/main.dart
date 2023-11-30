@@ -30,6 +30,8 @@ class _ExampleState extends State<Example> {
     return Scaffold(
       body: Center(
         child: FlexibleSegmentedButton(
+          itemSize: 60,
+          borderRadius: BorderRadius.circular(20),
           selectedSide: const BorderSide(width: 3, color: Color(0XFF6B6C75)),
           currentIndex: 5,
           selectedIndex: _selectedIndex,
