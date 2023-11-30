@@ -83,16 +83,11 @@ class _FlexibleSegmentedButtonState<T>
   }
 
   @override
-  void didUpdateWidget(covariant FlexibleSegmentedButton<T> oldWidget) {
+  Widget build(BuildContext context) {
     if (_controller.hasClients && widget.currentIndex != -1 && !_isScrolled) {
       _animateToIndex(widget.currentIndex);
       _isScrolled = true;
     }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  Widget build(BuildContext context) {
     final BoxConstraints constraints = widget.constraints ??
         BoxConstraints(
           maxHeight: widget.itemSize + widget.padding.vertical, //+ 8.0,
