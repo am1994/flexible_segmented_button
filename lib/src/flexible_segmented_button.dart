@@ -87,6 +87,7 @@ class _FlexibleSegmentedButtonState<T>
     if (_controller.hasClients && widget.currentIndex != -1 && !_isScrolled) {
       _animateToIndex(widget.currentIndex);
       _isScrolled = true;
+      setState(() {});
     }
     final BoxConstraints constraints = widget.constraints ??
         BoxConstraints(
